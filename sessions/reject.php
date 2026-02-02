@@ -13,9 +13,9 @@ if (isset($_GET['id'])) {
     $sid = intval($_GET['id']);
     $tid = $_SESSION['user_id'];
 
-    // Reject session ONLY if it is still requested
+    // Reject session ONLY if it is still requested (or empty status from legacy data)
     $stmt = $conn->prepare("UPDATE sessions SET status='rejected' 
-                            WHERE id=? AND tutor_id=? AND status='requested'");
+                            WHERE id=? AND tutor_id=? AND (status='requested' OR status='' OR status IS NULL)");
     $stmt->bind_param("ii", $sid, $tid);
     $stmt->execute();
 
@@ -25,7 +25,7 @@ if (isset($_GET['id'])) {
         if ($info) {
             $studentId = $info['learner_id'];
             $title     = $conn->real_escape_string($info['title']);
-            $msg = "❌ Your session request '$title' has been rejected by your tutor.";
+            $msg = "Your session request '$title' has been rejected by your tutor.";
             $conn->query("INSERT INTO notifications (user_id,message) VALUES ($studentId,'$msg')");
         }
 
